@@ -40,13 +40,14 @@ my $do_fork;
 my $verbose;
 my $debug;
 my $help;
-
+my $update_rate;
 
 GetOptions(
 	"host=s" => \$host,
 	"spooldir|s=s" => \$SPOOLDIR,
 	"interval|i=i" => \$intervalsize,
 	"retain|r=i" => \$retaincount,
+	"update-rate=i" => \$update_rate,
 
 	"fork" => \$do_fork,
 
@@ -125,7 +126,7 @@ MAIN: while(1) {
 	my $when_next = $when + 3600; # wake up at least every hour
 	PLUGIN: foreach my $plugin (@plugins) {
 		# See if this plugin should be updated
-		my $plugin_rate = get_hash($plugin, $plugin_rate_filename) || 300;
+		my $plugin_rate = get_hash($plugin, $plugin_rate_filename) || $update_rate || 300;
 		if ($when < ($last_updated{$plugin} || 0) + $plugin_rate) {
 			# not yet, next plugin
 			next;
@@ -200,6 +201,12 @@ sub fetch_data
 				# This has to be sent back to the master
 				set_hash($plugin, $1, $plugin_rate_filename);
 			}
+		}
+
+		# handle the special case of cli update_rate
+		if ($update_rate 
+			&& ! grep { $_ =~ m/^update_rate (\d+)/ } @$update_rate ) {
+			push @$output_rows, "update_rate $update_rate";
 		}
 
 		print STDERR "[$$][$process_name] asking for data\n" if $verbose;
