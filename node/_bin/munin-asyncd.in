@@ -204,8 +204,7 @@ sub fetch_data
 		}
 
 		# handle the special case of cli update_rate
-		if ($update_rate 
-			&& ! grep { $_ =~ m/^update_rate (\d+)/ } @$update_rate ) {
+		if ($update_rate && ! grep { $_ =~ m/^update_rate (\d+)/ } @$output_rows ) {
 			push @$output_rows, "update_rate $update_rate";
 		}
 
